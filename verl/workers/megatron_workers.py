@@ -267,7 +267,7 @@ class ActorRolloutRefWorker(MegatronWorker):
         from omegaconf import OmegaConf
         from verl.utils.torch_dtypes import PrecisionType
         override_model_config = OmegaConf.to_container(self.config.model.get('override_config', OmegaConf.create()))
-        torch_dtype = torch.bfloat16
+        torch_dtype = torch.float16
 
         megatron_config = OmegaConf.create({
             'sequence_parallel': self.config.actor.megatron.get('sequence_parallel', True),
@@ -521,7 +521,7 @@ class CriticWorker(MegatronWorker):
             import importlib
             importlib.import_module(self.config.model.external_lib)
         override_model_config = OmegaConf.to_container(self.config.model.get('override_config', OmegaConf.create()))
-        torch_dtype = torch.bfloat16
+        torch_dtype = torch.float16
 
         megatron_config = OmegaConf.create({
             'sequence_parallel': self.config.megatron.get('sequence_parallel', True),
@@ -689,7 +689,7 @@ class RewardModelWorker(MegatronWorker):
             rm_tokenizer_local_path = copy_local_path_from_hdfs(rm_tokenizer_path)
             rm_tokenizer = hf_tokenizer(rm_tokenizer_local_path)
 
-        torch_dtype = torch.bfloat16
+        torch_dtype = torch.float16
 
         megatron_config = OmegaConf.create({
             'sequence_parallel': self.config.megatron.get('sequence_parallel', True),

@@ -22,7 +22,7 @@ if model_name == 'blair-base':
 elif model_name == 'blair-large':
     model_path = "hyp1231/blair-roberta-large"
     index_path = f"data/amazon_c4/raw/dense_index/blair-large/faiss_hnsw_index.bin"
-    doc_ids_path = f"data/amazon_c4/raw/cache/doc_ids.npy"
+    doc_ids_path = f"data/amazon_c4/raw/cache/Amazon-C4/Amazon-C4.npy"
 
 try:
     search_system = FaissHNSWSearcher(model_name=model_path, 
@@ -200,7 +200,7 @@ def compute_score(solution_str, ground_truth, data_source, format_reward=0.1):
     if 'test' in data_source or 'val' in data_source:
         top_k = 100
     else:
-        top_k = 3000
+        top_k = 100
     
     answer_score = 0
     if format_correct and answer_text:

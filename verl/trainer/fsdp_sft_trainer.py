@@ -219,7 +219,7 @@ class FSDPSFTTrainer(object):
         loss_mask = batch.pop('loss_mask')[:, :-1].reshape(-1).cuda()
         labels = batch['input_ids'][:, 1:].cuda()
 
-        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.autocast(device_type='cuda', dtype=torch.float16):
             output = self.fsdp_model(input_ids=batch['input_ids'],
                                      attention_mask=batch['attention_mask'],
                                      position_ids=batch['position_ids'],

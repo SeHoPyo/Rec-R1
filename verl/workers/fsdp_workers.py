@@ -131,7 +131,7 @@ class ActorRolloutRefWorker(Worker):
 
         torch_dtype = fsdp_config.get('model_dtype', None)
         if torch_dtype is None:
-            torch_dtype = torch.float32 if self._is_actor else torch.bfloat16
+            torch_dtype = torch.float16  # Use float16 for both actor and ref on V100
         else:
             torch_dtype = PrecisionType.to_dtype(torch_dtype)
 
@@ -181,11 +181,11 @@ class ActorRolloutRefWorker(Worker):
         # We wrap FSDP for rollout as well
         mixed_precision_config = fsdp_config.get('mixed_precision', None)
         if mixed_precision_config is not None:
-            param_dtype = PrecisionType.to_dtype(mixed_precision_config.get('param_dtype', 'bf16'))
+            param_dtype = PrecisionType.to_dtype(mixed_precision_config.get('param_dtype', 'fp16'))
             reduce_dtype = PrecisionType.to_dtype(mixed_precision_config.get('reduce_dtype', 'fp32'))
             buffer_dtype = PrecisionType.to_dtype(mixed_precision_config.get('buffer_dtype', 'fp32'))
         else:
-            param_dtype = torch.bfloat16
+            param_dtype = torch.float16
             reduce_dtype = torch.float32
             buffer_dtype = torch.float32
 
@@ -388,7 +388,7 @@ class ActorRolloutRefWorker(Worker):
             output = DataProto(meta_info={'metrics': metrics})
 
             output = self.ulysses_sharding_manager.postprocess_data(data=output)
-            output = output.to('cpu')
+            output = output.to('cuda')
 
         if self._is_offload_param:
             offload_fsdp_param_and_grad(module=self.actor_module_fsdp, offload_grad=self._is_offload_grad)
@@ -435,7 +435,7 @@ class ActorRolloutRefWorker(Worker):
                 output.batch['old_log_probs'] = old_log_probs
                 output = self.ulysses_sharding_manager.postprocess_data(output)
 
-        output = output.to('cpu')
+        output = output.to('cuda')
 
         if self._is_offload_param:
             # NOTE(sgm): the grad is already in CPU, only offload param here
@@ -467,7 +467,7 @@ class ActorRolloutRefWorker(Worker):
             output = DataProto.from_dict(tensors={'ref_log_prob': output})
             output = self.ulysses_sharding_manager.postprocess_data(output)
 
-        output = output.to('cpu')
+        output = output.to('cuda')
 
         if self._is_offload_param:
             offload_fsdp_param_and_grad(module=self.ref_module_fsdp, offload_grad=self._is_offload_grad)
@@ -605,11 +605,11 @@ class CriticWorker(Worker):
         fsdp_config = self.config.model.fsdp_config
         mixed_precision_config = fsdp_config.get('mixed_precision', None)
         if mixed_precision_config is not None:
-            param_dtype = PrecisionType.to_dtype(mixed_precision_config.get('param_dtype', 'bf16'))
+            param_dtype = PrecisionType.to_dtype(mixed_precision_config.get('param_dtype', 'fp16'))
             reduce_dtype = PrecisionType.to_dtype(mixed_precision_config.get('reduce_dtype', 'fp32'))
             buffer_dtype = PrecisionType.to_dtype(mixed_precision_config.get('buffer_dtype', 'fp32'))
         else:
-            param_dtype = torch.bfloat16
+            param_dtype = torch.float16
             reduce_dtype = torch.float32
             buffer_dtype = torch.float32
 
@@ -689,7 +689,7 @@ class CriticWorker(Worker):
             output = DataProto.from_dict(tensors={'values': values})
             output = self.ulysses_sharding_manager.postprocess_data(data=output)
 
-        output = output.to('cpu')
+        output = output.to('cuda')
         if self._is_offload_param:
             offload_fsdp_param_and_grad(module=self.critic_module, offload_grad=self._is_offload_grad)
         torch.cuda.empty_cache()
@@ -729,7 +729,7 @@ class CriticWorker(Worker):
         if self._is_offload_optimizer:
             offload_fsdp_optimizer(optimizer=self.critic_optimizer)
         torch.cuda.empty_cache()
-        output = output.to('cpu')
+        output = output.to('cuda')
         return output
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
@@ -828,10 +828,10 @@ class RewardModelWorker(Worker):
             setattr(model_config, 'classifier_dropout', 0.)
             reward_module = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                             config=model_config,
-                                                                            torch_dtype=torch.bfloat16,
+                                                                            torch_dtype=torch.float16,
                                                                             attn_implementation='flash_attention_2',
                                                                             trust_remote_code=trust_remote_code)
-            reward_module.to(torch.bfloat16)
+            reward_module.to(torch.float16)
         auto_wrap_policy = get_fsdp_wrap_policy(module=reward_module, config=self.config.model.fsdp_config)
 
         reward_module = FSDP(
@@ -858,7 +858,7 @@ class RewardModelWorker(Worker):
         from flash_attn.bert_padding import pad_input, unpad_input, index_first_axis, rearrange
         from verl.utils.ulysses import ulysses_pad_and_slice_inputs, gather_outpus_and_unpad
 
-        with torch.no_grad(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.no_grad(), torch.autocast(device_type='cuda', dtype=torch.float16):
             input_ids = micro_batch['input_ids']
             batch_size, seqlen = input_ids.shape
             attention_mask = micro_batch['attention_mask']

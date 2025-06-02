@@ -1,3 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=do_gen
+#SBATCH --output=logs/%x-%j.out         # stdout
+#SBATCH --error=logs/%x-%j.err          # stderr
+#SBATCH --partition=P2
+#SBATCH --nodes=1                  # single node
+#SBATCH --cpus-per-task=8         # CPU cores per task
+#SBATCH --gres=gpu:1               # 1 GPUs
+#SBATCH --mem=100G                 # memory
+
 set -x
 
 python3 -m verl.trainer.main_ppo \

@@ -52,7 +52,7 @@ class DataParallelPPOCritic(BasePPOCritic):
 
     def _forward_micro_batch(self, micro_batch):
         response_length = micro_batch['responses'].size(-1)
-        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.autocast(device_type='cuda', dtype=torch.float16):
             input_ids = micro_batch['input_ids']
             batch, seqlen = input_ids.shape
             attention_mask = micro_batch['attention_mask']
