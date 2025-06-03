@@ -50,13 +50,7 @@ def sentence2emb(args, order_texts, feat_name, tokenizer, model, prompt=None):
 def generate_item_emb(args, tokenizer, model):
     item_pool = []
     if args.dataset == 'McAuley-Lab/Amazon-C4':
-        # filepath = hf_hub_download(
-        #     repo_id=args.dataset,
-        #     filename='sampled_item_metadata_1M.jsonl',
-        #     repo_type='dataset'
-        # )
-        # filepath = 'data/amazon_c4/raw/sampled_item_metadata_1M.jsonl'
-        filepath = 'data/amazon_c4/raw/sport_only.jsonl'
+        filepath = 'data/meta_data/metadata_sports_filtered.jsonl'
     elif args.dataset == 'esci':
         filepath = os.path.join(args.cache_path, 'sampled_item_metadata_esci.jsonl')
     else:
@@ -69,12 +63,7 @@ def generate_item_emb(args, tokenizer, model):
 
 def generate_query_emb(args, tokenizer, model):
     if args.dataset == 'McAuley-Lab/Amazon-C4':
-        # dataset = load_dataset(args.dataset)['test']
-        # with open('data/amazon_c4/subset/Baby/train.json', 'r') as file:
-        #     train_data = json.load(file)
-        # dataset = train_data[:1000]
-        # # transform into dataset format
-        with open('data/amazon_c4/subset/Sports/filter_train_Sports.json', 'r') as file:
+        with open('data/amazon_c4/sports_json/Sports_filtered3plus.json', 'r') as file:
             test_data = json.load(file)
         dataset = Dataset.from_list(test_data)
     elif args.dataset == 'esci':

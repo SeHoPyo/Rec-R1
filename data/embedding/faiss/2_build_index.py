@@ -40,12 +40,13 @@ def build_faiss_hnsw_index(embedding_path, output_index_path, M=32, ef_construct
 
 if __name__ == '__main__':
     # File paths
-    output_dir = "Rec-R1/data/embedding/faiss"
+    output_dir = "data/embedding/faiss/Amazon-C4"
 
     ##### Modify
+
     embedding_path = f"{output_dir}/Amazon-C4.blair-largeCLS"
 
-    save_dir = f'Rec-R1/data/embedding/faiss'
+    save_dir = f'data/embedding/faiss/Amazon-C4'
     os.makedirs(save_dir, exist_ok=True)
     index_output_path = f"{save_dir}/faiss_hnsw_index.bin"
 

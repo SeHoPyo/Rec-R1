@@ -10,12 +10,12 @@
 #SBATCH --exclude=b[19,31]
 
 DATASET=McAuley-Lab/Amazon-C4
-CACHE_DIR=data/amazon_c4/raw/cache
+CACHE_DIR=data/embedding/faiss
 PLM_NAME=hyp1231/blair-roberta-large
 FEAT_NAME=blair-large
 GPU_ID=0
 
-python src/blair/generate_emb.py \
+python data/embedding/blair/generate_emb.py \
     --dataset $DATASET \
     --cache_path $CACHE_DIR \
     --plm_name $PLM_NAME \
