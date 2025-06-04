@@ -9,8 +9,8 @@ from tqdm import tqdm
 import random
 
 # Input and output paths
-INPUT_JSON = "/Users/shingeunbang/RLproj/Rec-R1/data/amazon_c4/sports_json/Sports_filtered3plus.json"
-OUTPUT_DIR = "/Users/shingeunbang/RLproj/Rec-R1/data/amazon_c4/sports_parquet"
+INPUT_JSON = "data/amazon_c4/sports_json/Sports_filtered3plus.json"
+OUTPUT_DIR = "data/amazon_c4/sports_parquet"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 PROMPT = """You are an expert in query rewriting for dense retrieval systems. Rewrite the following product search query as if you are a real customer writing a natural, authentic review after using the product. Maintain the meaning and details of the original query, but shift the tone to be more casual, emotional, and based on personal experience. Include specific comments about product performance that match the query's intent.
@@ -62,10 +62,9 @@ if __name__ == '__main__':
     random.shuffle(data)
 
     # Split ratios
-    n = len(data)
-    n_train = int(n * 0.8)
-    n_val = int(n * 0.1)
-    n_test = n - n_train - n_val
+    n_train = 2056
+    n_val = 256
+    n_test = 256
 
     train_data = data[:n_train]
     val_data = data[n_train:n_train + n_val]

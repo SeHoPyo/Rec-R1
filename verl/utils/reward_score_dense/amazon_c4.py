@@ -143,7 +143,7 @@ def check_json_format(json_str, do_print=False):
             print("[Error] JSON decoding failed")
         return False
 
-def retriver_items(query, top_k=3000, threads=16):
+def retriver_items(query, top_k=500, threads=16):
     """Retrieve items from the search system."""
     results = search_system.batch_search([query], top_k=top_k, threads=threads)
     return results
@@ -198,9 +198,9 @@ def compute_score(solution_str, ground_truth, data_source, format_reward=0.1):
     
 
     if 'test' in data_source or 'val' in data_source:
-        top_k = 100
+        top_k = 50
     else:
-        top_k = 2000
+        top_k = 500
     
     answer_score = 0
     if format_correct and answer_text:
