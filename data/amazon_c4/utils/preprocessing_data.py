@@ -62,16 +62,16 @@ if __name__ == '__main__':
     random.shuffle(data)
 
     # Split ratios
-    n_train = 2056
+    n_train = 2048
     n_val = 256
     n_test = 256
 
     train_data = data[:n_train]
     val_data = data[n_train:n_train + n_val]
-    test_data = data[n_train + n_val:]
+    test_data = data[n_train + n_val:n_train + n_val + n_test]
 
     # Process and filter by prompt length
-    threshold = 256
+    threshold = 512
 
     def process_and_filter(split_data, split_name):
         processed = []
