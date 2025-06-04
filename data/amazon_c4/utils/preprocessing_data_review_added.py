@@ -28,8 +28,7 @@ PROMPT_WITH_HISTORY = """You are an expert in query rewriting for dense retrieva
 # Below are previous reviews written by the same user for other products:
 # ```{previous_reviews}```
 
-# Analyze the user's writing style, tone, vocabulary, and review patterns from the previous reviews above.
-# Important: Write a new review that MATCHES THE SAME PERSONAL STYLE as the user's previous reviews while addressing the content of the query."""
+# Analyze the user's writing style, tone, vocabulary, and review patterns from the previous reviews above, and write a new review that matches the same personal style as the user's previous reviews while addressing the content of the query."""
 
 def load_user_reviews():
     """Load all reviews and organize them by user_id"""
