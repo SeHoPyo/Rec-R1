@@ -1,5 +1,5 @@
 export N_GPUS=2
-export DATA_DIR=data/amazon_c4/sports_parquet
+export DATA_DIR=data/amazon_c4/sports_parquet_review_added
 export BASE_MODEL=Qwen/Qwen2.5-3B-Instruct
 export ROLLOUT_TP_SIZE=2
 export EXPERIMENT_NAME=matching-qwen2.5-3b-inst-ppo

@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.append('./')
 
-from data.embedding.faiss.search import FaissHNSWSearcher
+from src.Dense.amazon_c4.search import FaissHNSWSearcher
 
 # model_name = 'blair-base'
 model_name = 'blair-large'
@@ -143,7 +143,7 @@ def check_json_format(json_str, do_print=False):
             print("[Error] JSON decoding failed")
         return False
 
-def retriver_items(query, top_k=500, threads=16):
+def retriver_items(query, top_k=3000, threads=16):
     """Retrieve items from the search system."""
     results = search_system.batch_search([query], top_k=top_k, threads=threads)
     return results

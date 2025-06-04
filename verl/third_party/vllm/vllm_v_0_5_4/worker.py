@@ -271,9 +271,6 @@ class Worker(Worker):
             load_hf_weights(actor_weights, self.model_runner.model)
         elif load_format == LoadFormat.DTENSOR:
             load_dtensor_weights(actor_weights, self.model_runner.model)
-        
-        # Ensure model is on GPU after weight loading
-        self.model_runner.model = self.model_runner.model.cuda()
 
     def offload_model_weights(self) -> None:
         if self.cpu_model == None:

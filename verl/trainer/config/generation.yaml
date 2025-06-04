@@ -20,7 +20,7 @@ rollout:
   prompt_length: 1536
   response_length: 512
   # for vllm rollout
-  dtype: float16 # should align with FSDP
+  dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.5
   ignore_eos: False
   micro_batch_size: 256

@@ -6,7 +6,7 @@ python3 -m verl.trainer.main_ppo \
     data.val_files=$DATA_DIR/val.parquet \
     data.train_batch_size=32 \
     data.val_batch_size=32 \
-    data.max_prompt_length=256 \
+    data.max_prompt_length=512 \
     data.max_response_length=512 \
     actor_rollout_ref.model.path=$BASE_MODEL \
     actor_rollout_ref.model.use_remove_padding=True \
