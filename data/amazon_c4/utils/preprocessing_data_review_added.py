@@ -86,7 +86,7 @@ def get_previous_reviews(user_id, current_item_id, user_reviews_dict, max_review
     
     return "\n\n".join(formatted_reviews)
 
-def make_prefix(dp, user_reviews_dict):
+def make_prefix(dp, user_reviews_dict, threshold=512):
     user_id = dp.get('user_id')
     item_id = dp.get('item_id')
     
@@ -153,60 +153,6 @@ def make_prefix(dp, user_reviews_dict):
     
     return input_str
 
-def process_example(example, idx, split, user_reviews_dict):
-    question = make_prefix(example, user_reviews_dict)
-    solution = {
-        "target": example.get('item_id', None),
-    }
-    data = {
-        "data_source": "amazon_c4_dense_sports",
-        "prompt": [{
-            "role": "user",
-            "content": question,
-        }],
-        "ability": "amazon_review",
-        "reward_model": {
-            "style": "rule",
-            "ground_truth": solution
-        },
-        "extra_info": {
-            'split': split,
-            'index': idx,
-            'user_id': example.get('user_id', None)
-        }
-    }
-    return data
-
-def process_and_filter(split_data, split_name, user_reviews_dict):
-    processed = []
-    with_history_count = 0
-    without_history_count = 0
-    
-    for idx, example in enumerate(tqdm(split_data, desc=f"Processing {split_name}")):
-        item = process_example(example, idx, split_name, user_reviews_dict)
-        
-        # Check if this example has user history
-        user_id = example.get('user_id')
-        has_history = False
-        if user_id and user_id in user_reviews_dict:
-            item_id = example.get('item_id')
-            other_reviews = [r for r in user_reviews_dict[user_id] if r['item_id'] != item_id]
-            has_history = len(other_reviews) > 0
-        
-        if has_history:
-            with_history_count += 1
-        else:
-            without_history_count += 1
-            
-        if len(item['prompt'][0]['content'].split()) < threshold:
-            processed.append(item)
-    
-    print(f"{split_name} statistics:")
-    print(f"  - Examples with user history: {with_history_count} ({with_history_count / len(split_data) * 100:.2f}%)")
-    print(f"  - Examples without user history: {without_history_count} ({without_history_count / len(split_data) * 100:.2f}%)")
-    
-    return processed
-
 if __name__ == '__main__':
     # Load user reviews first
     print("Loading user reviews from JSONL file...")
@@ -247,19 +193,96 @@ if __name__ == '__main__':
     val_data = data[n_train:n_train + n_val]
     test_data = data[n_train + n_val:n_train + n_val + n_test]
 
-    # Process and filter by prompt length
+    # Convert to datasets
+    train_dataset = Dataset.from_list(train_data)
+    val_dataset = Dataset.from_list(val_data)
+    test_dataset = Dataset.from_list(test_data)
+    
+    # Define the threshold for prompt length
     threshold = 512
-
-    train_processed = process_and_filter(train_data, "train", user_reviews_dict)
-    val_processed = process_and_filter(val_data, "val", user_reviews_dict)
-    test_processed = process_and_filter(test_data, "test", user_reviews_dict)
-
+    
+    # Create mapping function with review history
+    def make_map_fn(split):
+        def process_fn(example, idx):
+            # Generate the prompt with potential review history
+            question = make_prefix(example, user_reviews_dict, threshold)
+            
+            # Check if this example has user history (for statistics)
+            user_id = example.get('user_id')
+            has_history = False
+            if user_id and user_id in user_reviews_dict:
+                item_id = example.get('item_id')
+                other_reviews = [r for r in user_reviews_dict[user_id] if r['item_id'] != item_id]
+                has_history = len(other_reviews) > 0
+            
+            solution = {
+                "target": example.get('item_id', None),
+            }
+            
+            data = {
+                "data_source": "amazon_c4_dense_sports",
+                "prompt": [{
+                    "role": "user",
+                    "content": question,
+                }],
+                "ability": "amazon_review",
+                "reward_model": {
+                    "style": "rule",
+                    "ground_truth": solution
+                },
+                "extra_info": {
+                    'split': split,
+                    'index': idx,
+                    'has_review_history': has_history
+                }
+            }
+            return data
+        return process_fn
+    
+    # Apply mapping to all datasets
+    print("Applying processing to train dataset...")
+    train_dataset = train_dataset.map(function=make_map_fn('train'), with_indices=True)
+    print("Applying processing to validation dataset...")
+    val_dataset = val_dataset.map(function=make_map_fn('val'), with_indices=True)
+    print("Applying processing to test dataset...")
+    test_dataset = test_dataset.map(function=make_map_fn('test'), with_indices=True)
+    
+    # Calculate statistics about review history
+    def count_history(dataset):
+        with_history = sum(1 for item in dataset if item['extra_info']['has_review_history'])
+        total = len(dataset)
+        return with_history, total - with_history
+    
+    train_with_history, train_without_history = count_history(train_dataset)
+    val_with_history, val_without_history = count_history(val_dataset)
+    test_with_history, test_without_history = count_history(test_dataset)
+    
+    print("User review history statistics:")
+    print(f"Train: {train_with_history} with history ({train_with_history/len(train_dataset)*100:.2f}%), " 
+          f"{train_without_history} without ({train_without_history/len(train_dataset)*100:.2f}%)")
+    print(f"Val: {val_with_history} with history ({val_with_history/len(val_dataset)*100:.2f}%), "
+          f"{val_without_history} without ({val_without_history/len(val_dataset)*100:.2f}%)")
+    print(f"Test: {test_with_history} with history ({test_with_history/len(test_dataset)*100:.2f}%), "
+          f"{test_without_history} without ({test_without_history/len(test_dataset)*100:.2f}%)")
+    
+    # Filter by prompt length
+    original_train_len = len(train_dataset)
+    original_val_len = len(val_dataset)
+    original_test_len = len(test_dataset)
+    
+    # Apply filtering
+    train_dataset = train_dataset.filter(lambda x: len(x['prompt'][0]['content'].split()) < threshold)
+    val_dataset = val_dataset.filter(lambda x: len(x['prompt'][0]['content'].split()) < threshold)
+    test_dataset = test_dataset.filter(lambda x: len(x['prompt'][0]['content'].split()) < threshold)
+    
     print(f"Final counts after filtering by prompt length:")
-    print(f"train: {len(train_processed)}, val: {len(val_processed)}, test: {len(test_processed)}")
-
+    print(f"Train: {len(train_dataset)} (removed {original_train_len - len(train_dataset)})")
+    print(f"Val: {len(val_dataset)} (removed {original_val_len - len(val_dataset)})")
+    print(f"Test: {len(test_dataset)} (removed {original_test_len - len(test_dataset)})")
+    
     # Save as parquet
-    Dataset.from_list(train_processed).to_parquet(os.path.join(OUTPUT_DIR, 'train.parquet'))
-    Dataset.from_list(val_processed).to_parquet(os.path.join(OUTPUT_DIR, 'val.parquet'))
-    Dataset.from_list(test_processed).to_parquet(os.path.join(OUTPUT_DIR, 'test.parquet'))
+    train_dataset.to_parquet(os.path.join(OUTPUT_DIR, 'train.parquet'))
+    val_dataset.to_parquet(os.path.join(OUTPUT_DIR, 'val.parquet'))
+    test_dataset.to_parquet(os.path.join(OUTPUT_DIR, 'test.parquet'))
 
     print(f"Saved splits to {OUTPUT_DIR}")
