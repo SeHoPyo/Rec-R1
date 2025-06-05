@@ -39,9 +39,9 @@ if __name__ == '__main__':
     random.shuffle(data)
 
     # Split ratios
-    n_train = 2048
-    n_val = 256
-    n_test = 256
+    n_train = 1024
+    n_val = 128
+    n_test = 128
 
     train_data = data[:n_train]
     val_data = data[n_train:n_train + n_val]

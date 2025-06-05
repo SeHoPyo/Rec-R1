@@ -28,7 +28,7 @@ PROMPT_WITH_HISTORY = """You are an expert in query rewriting for dense retrieva
 # Below are previous reviews written by the same user for other products:
 # ```{previous_reviews}```
 
-# Analyze the user's writing style, tone, vocabulary, and review patterns from the previous reviews above, and write a new review that matches the same personal style as the user's previous reviews while addressing the content of the query."""
+# Analyze the user's writing style and priorities from the previous reviews above, then write a new review that embodies those characteristics while addressing the content of the query."""
 
 def load_user_reviews():
     """Load all reviews and organize them by user_id"""
@@ -126,7 +126,7 @@ def make_prefix(dp, user_reviews_dict, threshold=512):
             review_length = len(truncated_text.split())
             
             # Check if adding this review would exceed threshold
-            if current_length + review_length < threshold - 100:  # Leave 100 words buffer for the rest of prompt
+            if current_length + review_length < threshold - 150:  # Leave 100 words buffer for the rest of prompt
                 formatted_reviews.append(f"review {i+1}: {truncated_text}")
                 current_length += review_length
                 max_reviews_added += 1
@@ -185,9 +185,9 @@ if __name__ == '__main__':
     random.shuffle(data)
 
     # Split ratios
-    n_train = 2048
-    n_val = 256
-    n_test = 256
+    n_train = 1024
+    n_val = 128
+    n_test = 128
 
     train_data = data[:n_train]
     val_data = data[n_train:n_train + n_val]
