@@ -131,7 +131,7 @@ def check_json_format(json_str, do_print=False):
         data = json.loads(json_str)
         
         # Required keys
-        required_keys = {"query"}
+        required_keys = {"review"}
         if not all(key in data for key in required_keys):
             if do_print:
                 print("[Error] Missing required keys in JSON")
@@ -152,7 +152,7 @@ def calculate_answer_score(json_str, label, top_k):
     """Calculate answer score based on final_prediction idx."""
     try:
         data = json.loads(json_str)
-        query = data['query']
+        query = data['review']
         target = label
         results = retriver_items(query, top_k=top_k, threads=32)
         asin_results = [item[0] for item in results[query]]

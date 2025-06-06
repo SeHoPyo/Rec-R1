@@ -153,7 +153,7 @@ def make_prefix(dp, user_reviews_dict, threshold=512):
     input_str += """\nShow your work in <think> </think> tags. Your final response must be in JSON format within <answer> </answer> tags. For example,
 <answer>
 {
-    "query": xxx
+    "review": xxx
 }
 </answer>.<|im_end|>
 <|im_start|>assistant\nLet me solve this step by step.\n<think>"""
