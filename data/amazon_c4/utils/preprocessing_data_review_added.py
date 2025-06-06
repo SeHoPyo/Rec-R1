@@ -48,7 +48,7 @@ def load_user_reviews():
                         user_reviews[user_id] = []
                     # Store review with relevant information
                     user_reviews[user_id].append({
-                        'item_id': review.get('asin'),
+                        'item_id': review.get('parent_asin'),
                         'title': review.get('title', ''),
                         'text': review.get('text', ''),
                         'rating': review.get('rating', 0)
