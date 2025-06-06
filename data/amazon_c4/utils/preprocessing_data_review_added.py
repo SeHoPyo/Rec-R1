@@ -20,21 +20,18 @@ PROMPT = """You are an expert in query rewriting for dense retrieval systems. Re
 # Below is the product search query:
 # ```{user_query}```"""
 
-PROMPT_WITH_HISTORY = """You are an expert in rewriting product search queries into authentic, customer-like product reviews optimized for dense retrieval systems.
+PROMPT_WITH_HISTORY = """You are an expert in rewriting product search queries into customer-like product reviews optimized for dense retrieval systems.
 
-Follow these steps carefully:
+# Instructions:
+# 1. Analyze the user's previous reviews to capture their typical tone, language, and priorities.
+# 2. Rewrite the provided product search query into an authentic, casual, and emotionally engaging review, as if you have personally used the product. 
+# 3. Clearly reflect the user's intent and explicitly highlight specific performance details from the original query.
 
-1. Analyze the provided user's previous reviews to understand their typical tone, language, and priorities.
+# Below are the user's previous reviews:
+# ```{previous_reviews}```
 
-2. Rewrite the following product search query as if you are that real customer, writing a casual, emotional, and authentic review after personally using the product.
-
-3. Clearly address the user's main concerns and explicitly mention product performance details based on their query.
-
-Product search query:
-{user_query}
-
-User's previous reviews:
-{previous_reviews}
+# Below is the product search query:
+# ```{user_query}```
 """
 
 def load_user_reviews():
