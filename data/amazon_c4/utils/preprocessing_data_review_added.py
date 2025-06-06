@@ -20,15 +20,22 @@ PROMPT = """You are an expert in query rewriting for dense retrieval systems. Re
 # Below is the product search query:
 # ```{user_query}```"""
 
-PROMPT_WITH_HISTORY = """You are an expert in query rewriting for dense retrieval systems. Rewrite the following product search query as if you are a real customer writing a natural, authentic review after using the product. Maintain the meaning and details of the original query, but shift the tone to be more casual, emotional, and based on personal experience. Include specific comments about product performance that match the query's intent.
+PROMPT_WITH_HISTORY = """You are an expert in rewriting product search queries into authentic, customer-like product reviews optimized for dense retrieval systems.
 
-# Below is the product search query:
-# ```{user_query}```
+Follow these steps carefully:
 
-# Below are previous reviews written by the same user for other products:
-# ```{previous_reviews}```
+1. Analyze the provided user's previous reviews to understand their typical tone, language, and priorities.
 
-# Analyze the user's writing style and priorities from the previous reviews above, then write a new review that embodies those characteristics while addressing the content of the query."""
+2. Rewrite the following product search query as if you are that real customer, writing a casual, emotional, and authentic review after personally using the product.
+
+3. Clearly address the user's main concerns and explicitly mention product performance details based on their query.
+
+Product search query:
+{user_query}
+
+User's previous reviews:
+{previous_reviews}
+"""
 
 def load_user_reviews():
     """Load all reviews and organize them by user_id"""
@@ -126,7 +133,7 @@ def make_prefix(dp, user_reviews_dict, threshold=512):
             review_length = len(truncated_text.split())
             
             # Check if adding this review would exceed threshold
-            if current_length + review_length < threshold - 150:  # Leave 100 words buffer for the rest of prompt
+            if current_length + review_length < threshold:  # Leave 170 words buffer for the rest of prompt
                 formatted_reviews.append(f"review {i+1}: {truncated_text}")
                 current_length += review_length
                 max_reviews_added += 1
@@ -199,7 +206,7 @@ if __name__ == '__main__':
     test_dataset = Dataset.from_list(test_data)
     
     # Define the threshold for prompt length
-    threshold = 512
+    threshold = 800
     
     # Create mapping function with review history
     def make_map_fn(split):
