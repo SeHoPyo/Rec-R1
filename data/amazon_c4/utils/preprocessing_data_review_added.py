@@ -35,7 +35,7 @@ PROMPT_WITH_HISTORY = """You are an expert in rewriting product search queries i
 # Below is the product search query:
 # ```{user_query}```
 
-# Remember: your main goal is to write a review that fully reflects the product search query, making it sound as if it was personally written by the user.
+# Remember: Write a authentic review after using the product while maintaining the meaning and details of the original query.
 """
 
 
@@ -105,7 +105,7 @@ def make_prefix(dp, user_reviews_dict, threshold=1024):
             formatted_review = f"Purchase history {i+1}. \nItem ID: {review_item_id}, Metadata: {truncated_meta_data} \n Previous review: {truncated_review}"
             # Check if adding this review would exceed threshold
             review_length += len(formatted_review.split())
-            if review_length < threshold - 200:  # Leave 200 words buffer for the rest of prompt
+            if review_length < threshold - 700:  # Leave 700 words buffer for the rest of prompt
                 formatted_reviews.append(formatted_review)
             else:
                 break
@@ -182,6 +182,16 @@ if __name__ == '__main__':
     
     # Define the threshold for prompt length
     threshold = 1024
+    # Restrict user_reviews_dict to only user_ids present in train/val/test data
+
+    user_ids_in_data = set()
+    for dset in (train_data, val_data, test_data):
+        for item in dset:
+            uid = item.get('user_id')
+            if uid is not None:
+                user_ids_in_data.add(uid)
+    user_reviews_dict = {uid: reviews for uid, reviews in user_reviews_dict.items() if uid in user_ids_in_data}
+    print(f"Filtered user_reviews_dict to {len(user_reviews_dict)} users present in splits")
     
     # Create mapping function with review history
     def make_map_fn(split):

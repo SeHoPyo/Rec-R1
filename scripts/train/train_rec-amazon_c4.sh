@@ -41,4 +41,4 @@ python3 -m verl.trainer.main_ppo \
     trainer.project_name=$PROJECT_NAME \
     trainer.experiment_name=$EXPERIMENT_NAME \
     trainer.teamname=$TEAM_NAME \
-    trainer.total_epochs=5 2>&1 | tee exp_log/$EXPERIMENT_NAME-grpo-verl_2gpus_$DATE.log
+    trainer.total_epochs=4 2>&1 | tee exp_log/$EXPERIMENT_NAME-grpo-verl_2gpus_$DATE.log
