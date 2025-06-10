@@ -1,34 +1,39 @@
-
 import json
+from collections import defaultdict
 
 # 파일 경로 설정
-sports_json_path = '/Users/shingeunbang/RLproj/Rec-R1/data/amazon_c4/sports_json/Sports.json'
-filtered_review_path = '/Users/shingeunbang/RLproj/Rec-R1/data/amazon_c4/sports_json/filtered_review_Sports_and_Outdoors.jsonl'
-output_path = '/Users/shingeunbang/RLproj/Rec-R1/data/amazon_c4/sports_json/Sports_filtered_by_userid.json'
+sports_json_path = 'data/amazon_c4/sports_json/Sports.json'
+filtered_review_path = 'data/amazon_c4/sports_json/filtered_raw_review_Sports_and_Outdoors.jsonl'
+output_path = 'data/amazon_c4/sports_json/Sports_filtered3plus.json'
 
-# 1. filtered_review_Sports_and_Outdoors.jsonl에서 user_id 카운트
-user_id_count = {}
-with open(filtered_review_path, 'r', encoding='utf-8') as f:
+# user_id 등장 횟수 카운트
+user_count = defaultdict(int)
+
+# filtered_review 파일에서 user_id 카운트
+with open(filtered_review_path, 'r') as f:
     for line in f:
-        try:
-            review = json.loads(line)
-            user_id = review.get('user_id')
-            if user_id:
-                user_id_count[user_id] = user_id_count.get(user_id, 0) + 1
-        except Exception:
-            continue
+        review = json.loads(line)
+        user_id = review.get('user_id')
+        if user_id:
+            user_count[user_id] += 1
 
-# 2. 3번 이상 등장하는 user_id만 추출
-target_user_ids = {uid for uid, cnt in user_id_count.items() if cnt >= 3}
+# 3번 이상 등장한 user_id 추출
+frequent_users = {user_id for user_id, count in user_count.items() if count >= 3}
+print(f"3번 이상 등장한 사용자 수: {len(frequent_users)}")
 
-# 3. Sports.json에서 해당 user_id가 있는 항목만 추출
-with open(sports_json_path, 'r', encoding='utf-8') as f:
-    sports_data = json.load(f)
+# Sports.json 파일 필터링
+filtered_data = []
+with open(sports_json_path, 'r') as f:
+    data = json.load(f)
+    for item in data:
+        if item.get('user_id') in frequent_users:
+            filtered_data.append(item)
 
-filtered_sports = [item for item in sports_data if item.get('user_id') in target_user_ids]
+print(f"원본 데이터 항목 수: {len(data)}")
+print(f"필터링된 데이터 항목 수: {len(filtered_data)}")
 
-# 4. 결과 저장
-with open(output_path, 'w', encoding='utf-8') as f:
-    json.dump(filtered_sports, f, ensure_ascii=False, indent=2)
+# 필터링된 데이터 저장
+with open(output_path, 'w') as f:
+    json.dump(filtered_data, f, indent=2)
 
-print(f"총 {len(filtered_sports)}개의 항목이 {output_path}에 저장되었습니다.")
+print(f"필터링된 데이터가 {output_path}에 저장되었습니다.")
